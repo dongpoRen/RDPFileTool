@@ -22,11 +22,9 @@
         NSArray *filePaths = [manager subpathsAtPath:filePath];
         
         // 计算所有文件的总大小
-        
         CGFloat totalSize = 0;
         for (NSString *subfilePath in filePaths) {
             
-        
             NSString *fullPath = [filePath stringByAppendingPathComponent:subfilePath];
             
             BOOL isDirectory = NO;
@@ -44,8 +42,7 @@
         }
         
         // 将数据的处理放置于工具类中
-        NSString *cacheStr = [self handleDataWithSize:totalSize ];
-        
+        NSString *cacheStr = [self handleDataWithSize:totalSize];
         
         /*********** 将展示(传递)信息放在主线程中 **********/
         dispatch_sync(dispatch_get_main_queue(), ^{
@@ -55,11 +52,7 @@
             }
             
         });
-        
-        
     });
-    
-    
 }
 
 #pragma mark - 内部处理数据
@@ -67,7 +60,7 @@
     
     CGFloat unit = 1000.0;
     NSString *cacheStr = @"";
-    if (totalSize >= unit * unit ) {
+    if (totalSize >= unit * unit) {
         totalSize = totalSize / (unit * unit);
         cacheStr = [NSString stringWithFormat:@"%.1f MB",totalSize];
     } else if(totalSize >= unit) {
@@ -81,45 +74,45 @@
 }
 
 #pragma mark - 清理缓存
-+ (void)cleanCacheWithFilePath:(NSString *)filePath completed:(void (^)(BOOL))completed {
++ (void)clearCacheWithFilePath:(NSString *)filePath completed:(void (^)(BOOL))completed {
     
     // 在子线程中执行耗时操作
     [[[NSOperationQueue alloc] init] addOperationWithBlock:^{
         
         NSFileManager *manager = [NSFileManager defaultManager];
         
+        NSError *contentError = nil;
+        NSArray *array = [manager contentsOfDirectoryAtPath:@"" error:&contentError];
+        if (contentError) {
+            
+            [self clearSuccess:NO completed:completed];
+            return ;
+        }
         
-        
-        NSArray *array = [manager contentsOfDirectoryAtPath:filePath error:nil];
-        
-        BOOL isSuccess = NO;
+        // 默认为yes,考虑到array可能为nil.
+        BOOL isSuccess = YES;
         for (NSString *subFile in array) {
-        
+            
             NSString *fullPath = [filePath stringByAppendingPathComponent:subFile];
-
             isSuccess = [manager removeItemAtPath:fullPath error:nil];
             
             if (!isSuccess) {
-                return ;
+                break;
             }
         }
-//       BOOL isSuccess = [manager removeItemAtPath:filePath error:nil];
-
-        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            
-            if (completed) {
-                completed(isSuccess);
-            }
-            
-        }];
         
-        
+        [self clearSuccess:isSuccess completed:completed];
     }];
+}
 
-     
+- (void)clearSuccess:(BOOL)isSuccess completed:(void (^)(BOOL))completed
+{
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         
-        
-
+        if (completed) {
+            completed(isSuccess);
+        }
+    }];
 }
 
 @end
