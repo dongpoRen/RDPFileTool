@@ -80,7 +80,6 @@
     [[[NSOperationQueue alloc] init] addOperationWithBlock:^{
         
         NSFileManager *manager = [NSFileManager defaultManager];
-        
         NSError *contentError = nil;
         NSArray *array = [manager contentsOfDirectoryAtPath:@"" error:&contentError];
         if (contentError) {
@@ -95,12 +94,10 @@
             
             NSString *fullPath = [filePath stringByAppendingPathComponent:subFile];
             isSuccess = [manager removeItemAtPath:fullPath error:nil];
-            
             if (!isSuccess) {
                 break;
             }
         }
-        
         [self clearSuccess:isSuccess completed:completed];
     }];
 }
