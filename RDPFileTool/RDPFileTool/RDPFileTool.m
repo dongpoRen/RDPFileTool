@@ -1,6 +1,5 @@
 //
 //  RDPFileTool.m
-//  RDPBuDeJie
 //
 //  Created by DongpoRen on 15/7/18.
 //  Copyright © 2015年 DongpoRen. All rights reserved.
@@ -46,11 +45,9 @@
         
         /*********** 将展示(传递)信息放在主线程中 **********/
         dispatch_sync(dispatch_get_main_queue(), ^{
-            
             if (completed) {
                 completed(cacheStr);
             }
-            
         });
     });
 }
@@ -61,11 +58,9 @@
     CGFloat unit = 1000.0;
     NSString *cacheStr = @"";
     if (totalSize >= unit * unit) {
-        totalSize = totalSize / (unit * unit);
-        cacheStr = [NSString stringWithFormat:@"%.1f MB",totalSize];
+        cacheStr = [NSString stringWithFormat:@"%.1f MB",totalSize / (unit * unit)];
     } else if(totalSize >= unit) {
-        totalSize /= unit;
-        cacheStr = [NSString stringWithFormat:@"%.1f KB",totalSize];
+        cacheStr = [NSString stringWithFormat:@"%.1f KB",totalSize / unit];
     } else {
         cacheStr = [NSString stringWithFormat:@"%.1f B",totalSize];
     }
@@ -81,11 +76,10 @@
         
         NSFileManager *manager = [NSFileManager defaultManager];
         NSError *contentError = nil;
-        NSArray *array = [manager contentsOfDirectoryAtPath:@"" error:&contentError];
+        NSArray *array = [manager contentsOfDirectoryAtPath:filePath error:&contentError];
         if (contentError) {
-            
             [self clearSuccess:NO completed:completed];
-            return ;
+            return;
         }
         
         // 默认为yes,考虑到array可能为nil.
@@ -95,6 +89,7 @@
             NSString *fullPath = [filePath stringByAppendingPathComponent:subFile];
             isSuccess = [manager removeItemAtPath:fullPath error:nil];
             if (!isSuccess) {
+                [self clearSuccess:NO completed:completed]
                 break;
             }
         }
@@ -105,7 +100,6 @@
 - (void)clearSuccess:(BOOL)isSuccess completed:(void (^)(BOOL))completed
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        
         if (completed) {
             completed(isSuccess);
         }
